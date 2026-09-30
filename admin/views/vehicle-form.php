@@ -22,7 +22,11 @@ function vm_val( $v, $key, $default = '' ) {
 }
 
 // セレクタ選択肢
-$transport_bureaus  = array( '青森', '熊本' );
+$transport_bureaus  = VM_Master::get_bureaus();
+// マスタから削除済み等で選択肢にない既存値も、編集時に失われないよう追加する
+if ( $v && '' !== $v->transport_bureau && ! in_array( $v->transport_bureau, $transport_bureaus, true ) ) {
+    $transport_bureaus[] = $v->transport_bureau;
+}
 $class_numbers      = array( '130', '131', '830' );
 $purpose_categories = array( 'あ', 'い', 'う', 'え', 'か', 'き', 'く', 'け', 'こ', 'を' );
 $usage_types        = array( '特種', '貨物' );

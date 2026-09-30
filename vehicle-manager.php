@@ -19,6 +19,7 @@ define( 'VM_TABLE',      'vehicle_manager' ); // プレフィックスは $wpdb-
 // ── 依存ファイル読み込み ──────────────────────────────
 require_once VM_PLUGIN_DIR . 'includes/class-db-install.php';
 require_once VM_PLUGIN_DIR . 'includes/class-vehicle.php';
+require_once VM_PLUGIN_DIR . 'includes/class-master.php';
 require_once VM_PLUGIN_DIR . 'admin/class-admin-menu.php';
 
 // ── 有効化 / 無効化フック ─────────────────────────────
