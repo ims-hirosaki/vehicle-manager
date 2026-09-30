@@ -5,4 +5,6 @@ global $wpdb;
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}vehicle_manager" );
 delete_option( 'vm_tag_data' );
 delete_option( 'vm_transport_bureaus' );
+delete_option( 'vm_class_numbers' );
+delete_option( 'vm_purpose_categories' );
 delete_option( 'vm_db_version' );

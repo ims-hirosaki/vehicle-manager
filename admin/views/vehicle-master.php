@@ -2,40 +2,28 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 $notice = array();
+$types  = VM_Master::types();
 
 // ── POST 処理 ─────────────────────────────────────────
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['vm_master_action'] ) ) {
     check_admin_referer( 'vm_master_nonce', '_vm_master_nonce' );
-    $act = sanitize_key( $_POST['vm_master_action'] );
+    $act  = sanitize_key( $_POST['vm_master_action'] );
+    $mkey = sanitize_key( $_POST['master_type'] ?? '' );
+    $name = wp_unslash( $_POST['item_name'] ?? '' );
 
-    if ( 'add' === $act ) {
-        $res = VM_Master::add_bureau( wp_unslash( $_POST['bureau_name'] ?? '' ) );
-        $notice = ( true === $res )
-            ? array( 'success', '運輸支局を追加しました。' )
-            : array( 'error', $res );
-    } elseif ( 'delete' === $act ) {
-        $res = VM_Master::delete_bureau( wp_unslash( $_POST['bureau_name'] ?? '' ) );
-        $notice = ( true === $res )
-            ? array( 'success', '運輸支局を削除しました。' )
-            : array( 'error', $res );
-    } elseif ( 'move' === $act ) {
-        $list = VM_Master::get_bureaus();
-        $name = wp_unslash( $_POST['bureau_name'] ?? '' );
-        $idx  = array_search( $name, $list, true );
-        $dir  = ( 'up' === ( $_POST['dir'] ?? '' ) ) ? -1 : 1;
-        $to   = ( false === $idx ) ? false : $idx + $dir;
-        if ( false !== $to && isset( $list[ $to ] ) ) {
-            $tmp          = $list[ $idx ];
-            $list[ $idx ] = $list[ $to ];
-            $list[ $to ]  = $tmp;
-            VM_Master::reorder_bureaus( $list );
+    if ( isset( $types[ $mkey ] ) ) {
+        $label = $types[ $mkey ]['label'];
+        if ( 'add' === $act ) {
+            $res    = VM_Master::add_item( $mkey, $name );
+            $notice = ( true === $res ) ? array( 'success', $label . 'を追加しました。' ) : array( 'error', $res );
+        } elseif ( 'delete' === $act ) {
+            $res    = VM_Master::delete_item( $mkey, $name );
+            $notice = ( true === $res ) ? array( 'success', $label . 'を削除しました。' ) : array( 'error', $res );
+        } elseif ( 'move' === $act ) {
+            VM_Master::move_item( $mkey, $name, ( 'up' === ( $_POST['dir'] ?? '' ) ) ? 'up' : 'down' );
         }
     }
 }
-
-$bureaus = VM_Master::get_bureaus();
-$usage   = VM_Master::bureau_usage_counts();
-$last    = count( $bureaus ) - 1;
 ?>
 
 <div class="vm-wrap">
@@ -54,53 +42,61 @@ $last    = count( $bureaus ) - 1;
         </div>
     <?php endif; ?>
 
+    <?php foreach ( $types as $mkey => $t ) :
+        $items = VM_Master::get_items( $mkey );
+        $usage = VM_Master::usage_counts( $mkey );
+        $last  = count( $items ) - 1; ?>
     <div class="vm-card">
         <div class="vm-card-title">
-            <span class="dashicons dashicons-location"></span> 運輸支局マスタ
+            <span class="dashicons dashicons-list-view"></span> <?php echo esc_html( $t['label'] ); ?>マスタ
         </div>
 
         <form method="post" style="margin-bottom:16px;">
             <?php wp_nonce_field( 'vm_master_nonce', '_vm_master_nonce' ); ?>
             <input type="hidden" name="vm_master_action" value="add">
-            <input type="text" name="bureau_name" class="vm-input" maxlength="50"
-                   placeholder="例: 宮城" required>
+            <input type="hidden" name="master_type" value="<?php echo esc_attr( $mkey ); ?>">
+            <input type="text" name="item_name" class="vm-input" maxlength="<?php echo esc_attr( $t['max'] ); ?>"
+                   placeholder="<?php echo esc_attr( $t['placeholder'] ); ?>" required>
             <button type="submit" class="vm-btn vm-btn-primary">追加</button>
         </form>
 
         <table class="widefat striped" style="max-width:560px;">
             <thead>
-                <tr><th>運輸支局</th><th style="width:90px;">使用車両数</th><th style="width:200px;">操作</th></tr>
+                <tr><th><?php echo esc_html( $t['label'] ); ?></th><th style="width:90px;">使用車両数</th><th style="width:200px;">操作</th></tr>
             </thead>
             <tbody>
-            <?php foreach ( $bureaus as $i => $b ) :
-                $cnt = $usage[ $b ] ?? 0; ?>
+            <?php foreach ( $items as $i => $item ) :
+                $cnt = $usage[ $item ] ?? 0; ?>
                 <tr>
-                    <td><?php echo esc_html( $b ); ?></td>
+                    <td><?php echo esc_html( $item ); ?></td>
                     <td><?php echo esc_html( $cnt ); ?> 件</td>
                     <td>
                         <form method="post" style="display:inline;">
                             <?php wp_nonce_field( 'vm_master_nonce', '_vm_master_nonce' ); ?>
                             <input type="hidden" name="vm_master_action" value="move">
-                            <input type="hidden" name="bureau_name" value="<?php echo esc_attr( $b ); ?>">
+                            <input type="hidden" name="master_type" value="<?php echo esc_attr( $mkey ); ?>">
+                            <input type="hidden" name="item_name" value="<?php echo esc_attr( $item ); ?>">
                             <button type="submit" name="dir" value="up" class="button" <?php disabled( 0 === $i ); ?>>↑</button>
                             <button type="submit" name="dir" value="down" class="button" <?php disabled( $last === $i ); ?>>↓</button>
                         </form>
                         <form method="post" style="display:inline;"
-                              onsubmit="return confirm('「<?php echo esc_js( $b ); ?>」を削除しますか？');">
+                              onsubmit="return confirm('「<?php echo esc_js( $item ); ?>」を削除しますか？');">
                             <?php wp_nonce_field( 'vm_master_nonce', '_vm_master_nonce' ); ?>
                             <input type="hidden" name="vm_master_action" value="delete">
-                            <input type="hidden" name="bureau_name" value="<?php echo esc_attr( $b ); ?>">
+                            <input type="hidden" name="master_type" value="<?php echo esc_attr( $mkey ); ?>">
+                            <input type="hidden" name="item_name" value="<?php echo esc_attr( $item ); ?>">
                             <button type="submit" class="button" <?php disabled( $cnt > 0 ); ?>
                                     title="<?php echo $cnt > 0 ? '使用中のため削除できません' : ''; ?>">削除</button>
                         </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
-            <?php if ( ! $bureaus ) : ?>
-                <tr><td colspan="3">運輸支局が登録されていません。</td></tr>
+            <?php if ( ! $items ) : ?>
+                <tr><td colspan="3">登録されていません。</td></tr>
             <?php endif; ?>
             </tbody>
         </table>
-        <p class="description">車両登録フォームの「運輸支局」の選択肢に反映されます。使用中の運輸支局は削除できません。</p>
+        <p class="description">車両登録フォームの「<?php echo esc_html( $t['label'] ); ?>」の選択肢に反映されます。使用中の項目は削除できません。</p>
     </div>
+    <?php endforeach; ?>
 </div>
