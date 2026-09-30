@@ -27,8 +27,15 @@ $transport_bureaus  = VM_Master::get_bureaus();
 if ( $v && '' !== $v->transport_bureau && ! in_array( $v->transport_bureau, $transport_bureaus, true ) ) {
     $transport_bureaus[] = $v->transport_bureau;
 }
-$class_numbers      = array( '130', '131', '830' );
-$purpose_categories = array( 'あ', 'い', 'う', 'え', 'か', 'き', 'く', 'け', 'こ', 'を' );
+$class_numbers      = VM_Master::get_items( 'class_number' );
+$purpose_categories = VM_Master::get_items( 'purpose' );
+// マスタにない既存値も編集時に失われないよう追加する
+if ( $v && '' !== $v->classification_number && ! in_array( $v->classification_number, $class_numbers, true ) ) {
+    $class_numbers[] = $v->classification_number;
+}
+if ( $v && '' !== $v->purpose_category && ! in_array( $v->purpose_category, $purpose_categories, true ) ) {
+    $purpose_categories[] = $v->purpose_category;
+}
 $usage_types        = array( '特種', '貨物' );
 $body_shapes        = array( '冷蔵冷凍車', 'バン' );
 $brake_types        = array( 'ドラム', 'ディスク' );
