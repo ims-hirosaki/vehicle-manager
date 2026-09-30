@@ -60,6 +60,9 @@ class VM_DB_Install {
 
         update_option( 'vm_db_version', self::DB_VERSION );
 
+        // 運輸支局マスタ初期データ投入（まだ存在しない場合のみ）
+        VM_Master::init_defaults();
+
         // タグ初期データ投入（まだ存在しない場合のみ）
         if ( ! get_option( 'vm_tag_data' ) ) {
             self::init_default_tags();

@@ -47,6 +47,14 @@ class VM_Admin_Menu {
             'vm-vehicle-csv',
             array( __CLASS__, 'render_csv' )
         );
+        add_submenu_page(
+            'vehicle-manager',
+            'マスタ管理',
+            'マスタ管理',
+            'access_custom_plugins',
+            'vm-master',
+            array( __CLASS__, 'render_master' )
+        );
     }
 
     public static function enqueue_assets( $hook ) {
@@ -57,6 +65,7 @@ class VM_Admin_Menu {
             'vehicle-manager',
             'vm-vehicle-form',
             'vm-vehicle-csv',
+            'vm-master',
         );
         if ( ! in_array( $page, $vm_pages, true ) ) return;
 
@@ -110,6 +119,10 @@ class VM_Admin_Menu {
     public static function render_form() {
         if ( ! current_user_can( 'access_custom_plugins' ) ) wp_die( '権限がありません。', '', array( 'response' => 403 ) );
         require VM_PLUGIN_DIR . 'admin/views/vehicle-form.php';
+    }
+    public static function render_master() {
+        if ( ! current_user_can( 'access_custom_plugins' ) ) wp_die( '権限がありません。', '', array( 'response' => 403 ) );
+        require VM_PLUGIN_DIR . 'admin/views/vehicle-master.php';
     }
     public static function render_csv() {
         if ( ! current_user_can( 'access_custom_plugins' ) ) wp_die( '権限がありません。', '', array( 'response' => 403 ) );
