@@ -186,6 +186,7 @@ class VM_Vehicle {
 
         $defaults = array(
             'transport_bureau' => '',
+            'expiry_status'    => '',
             'orderby'          => 'serial_number',
             'order'            => 'ASC',
             'limit'            => 20,
@@ -199,6 +200,12 @@ class VM_Vehicle {
         if ( ! empty( $args['transport_bureau'] ) ) {
             $where   .= ' AND transport_bureau = %s';
             $params[] = $args['transport_bureau'];
+        }
+
+        $expiry_where = self::expiry_status_where( $args['expiry_status'] ?? '' );
+        if ( $expiry_where ) {
+            $where .= $expiry_where['sql'];
+            $params = array_merge( $params, $expiry_where['params'] );
         }
 
         $allowed_orderby = array( 'serial_number', 'registration_date', 'expiry_date', 'transport_bureau', 'id' );
@@ -215,6 +222,22 @@ class VM_Vehicle {
         return $wpdb->get_results( $sql );
     }
 
+    // ── 有効期限ステータス条件 ────────────────────────────────
+    // valid: 期限切れを除く / soon: 30日以内 / expired: 期限切れ
+    public static function expiry_status_where( $status ) {
+        $today = date( 'Y-m-d' );
+        $warn  = date( 'Y-m-d', strtotime( '+30 days' ) );
+        switch ( $status ) {
+            case 'valid':
+                return array( 'sql' => ' AND expiry_date >= %s', 'params' => array( $today ) );
+            case 'soon':
+                return array( 'sql' => ' AND expiry_date >= %s AND expiry_date <= %s', 'params' => array( $today, $warn ) );
+            case 'expired':
+                return array( 'sql' => ' AND expiry_date < %s', 'params' => array( $today ) );
+        }
+        return null;
+    }
+
     // ── 件数取得 ──────────────────────────────────────────────
     public static function count( $args = array() ) {
         global $wpdb;
@@ -226,6 +249,12 @@ class VM_Vehicle {
         if ( ! empty( $args['transport_bureau'] ) ) {
             $where   .= ' AND transport_bureau = %s';
             $params[] = $args['transport_bureau'];
+        }
+
+        $expiry_where = self::expiry_status_where( $args['expiry_status'] ?? '' );
+        if ( $expiry_where ) {
+            $where .= $expiry_where['sql'];
+            $params = array_merge( $params, $expiry_where['params'] );
         }
 
         $sql = "SELECT COUNT(*) FROM {$table} WHERE {$where}";
