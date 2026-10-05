@@ -4,6 +4,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // ── フィルター・ページング ────────────────────────────────────
 $per_page         = 20;
 $filter_transport = sanitize_text_field( $_GET['transport_bureau'] ?? '' );
+$filter_expiry    = sanitize_text_field( $_GET['expiry_status'] ?? '' );
+if ( ! in_array( $filter_expiry, array( 'valid', 'soon', 'expired' ), true ) ) $filter_expiry = '';
 $orderby          = sanitize_text_field( $_GET['orderby'] ?? 'serial_number' );
 $order            = strtoupper( sanitize_text_field( $_GET['order'] ?? 'ASC' ) );
 $current_page     = max( 1, intval( $_GET['paged'] ?? 1 ) );
@@ -11,6 +13,7 @@ $offset           = ( $current_page - 1 ) * $per_page;
 
 $args  = array(
     'transport_bureau' => $filter_transport,
+    'expiry_status'    => $filter_expiry,
     'orderby'          => $orderby,
     'order'            => $order,
     'limit'            => $per_page,
@@ -25,7 +28,7 @@ global $wpdb;
 $bureaus = $wpdb->get_col( "SELECT DISTINCT transport_bureau FROM {$wpdb->prefix}vehicle_manager ORDER BY transport_bureau" );
 
 // ソートリンク生成ヘルパー
-function vm_sort_link( $column, $label, $current_orderby, $current_order, $filter_transport ) {
+function vm_sort_link( $column, $label, $current_orderby, $current_order, $filter_transport, $filter_expiry = '' ) {
     $new_order = ( $current_orderby === $column && $current_order === 'ASC' ) ? 'DESC' : 'ASC';
     $icon = '';
     if ( $current_orderby === $column ) {
@@ -36,6 +39,7 @@ function vm_sort_link( $column, $label, $current_orderby, $current_order, $filte
         'orderby'          => $column,
         'order'            => $new_order,
         'transport_bureau' => $filter_transport,
+        'expiry_status'    => $filter_expiry,
     ), admin_url( 'admin.php' ) );
     return '<a href="' . esc_url( $url ) . '" class="vm-sort-link">' . esc_html( $label ) . $icon . '</a>';
 }
@@ -72,8 +76,15 @@ $warn_day = date( 'Y-m-d', strtotime( '+30 days' ) );
                     </option>
                 <?php endforeach; ?>
             </select>
+            <label class="vm-label">有効期限</label>
+            <select name="expiry_status" class="vm-select" onchange="this.form.submit()">
+                <option value="">すべて</option>
+                <option value="valid" <?php selected( $filter_expiry, 'valid' ); ?>>期限切れを除く</option>
+                <option value="soon" <?php selected( $filter_expiry, 'soon' ); ?>>有効期限間近（30日以内）</option>
+                <option value="expired" <?php selected( $filter_expiry, 'expired' ); ?>>期限切れのみ</option>
+            </select>
             <button type="submit" class="vm-btn vm-btn-secondary">絞り込む</button>
-            <?php if ( $filter_transport ) : ?>
+            <?php if ( $filter_transport || $filter_expiry ) : ?>
                 <a href="<?php echo esc_url( admin_url( 'admin.php?page=vehicle-manager' ) ); ?>"
                    class="vm-btn vm-btn-ghost">クリア</a>
             <?php endif; ?>
@@ -86,13 +97,13 @@ $warn_day = date( 'Y-m-d', strtotime( '+30 days' ) );
             <table class="vm-data-table">
                 <thead>
                     <tr>
-                        <th><?php echo vm_sort_link( 'transport_bureau', '運輸支局', $orderby, $order, $filter_transport ); ?></th>
+                        <th><?php echo vm_sort_link( 'transport_bureau', '運輸支局', $orderby, $order, $filter_transport, $filter_expiry ); ?></th>
                         <th>分類番号</th>
                         <th>用途区別</th>
-                        <th><?php echo vm_sort_link( 'serial_number', '一連指定番号', $orderby, $order, $filter_transport ); ?></th>
-                        <th><?php echo vm_sort_link( 'registration_date', '登録年月日', $orderby, $order, $filter_transport ); ?></th>
+                        <th><?php echo vm_sort_link( 'serial_number', '一連指定番号', $orderby, $order, $filter_transport, $filter_expiry ); ?></th>
+                        <th><?php echo vm_sort_link( 'registration_date', '登録年月日', $orderby, $order, $filter_transport, $filter_expiry ); ?></th>
                         <th>初度登録年月</th>
-                        <th><?php echo vm_sort_link( 'expiry_date', '有効期限満了日', $orderby, $order, $filter_transport ); ?></th>
+                        <th><?php echo vm_sort_link( 'expiry_date', '有効期限満了日', $orderby, $order, $filter_transport, $filter_expiry ); ?></th>
                         <th>ブレーキ</th>
                         <th>リーフスプリング</th>
                         <th class="vm-col-actions">操作</th>
@@ -155,6 +166,7 @@ $warn_day = date( 'Y-m-d', strtotime( '+30 days' ) );
                 'orderby'          => $orderby,
                 'order'            => $order,
                 'transport_bureau' => $filter_transport,
+                'expiry_status'    => $filter_expiry,
             ), admin_url( 'admin.php' ) );
         ?>
         <div class="vm-pagination">
