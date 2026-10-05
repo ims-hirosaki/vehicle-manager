@@ -45,6 +45,41 @@ function vm_get_vehicle_numbers() {
 }
 
 /**
+ * 車番（一連指定番号）→ 運輸支局 のマップを取得する
+ *
+ * @return array  [ serial_number => transport_bureau ]
+ */
+function vm_get_transport_bureau_map() {
+    global $wpdb;
+    $table = $wpdb->prefix . VM_TABLE;
+    $rows  = $wpdb->get_results( "SELECT serial_number, transport_bureau FROM {$table} WHERE serial_number != ''" );
+    $map   = array();
+    if ( is_array( $rows ) ) {
+        foreach ( $rows as $row ) {
+            $map[ $row->serial_number ] = $row->transport_bureau;
+        }
+    }
+    return $map;
+}
+
+/**
+ * 指定した一連指定番号（車番）の運輸支局を取得する
+ *
+ * @param string $serial_number
+ * @return string  未登録の場合は空文字
+ */
+function vm_get_transport_bureau( $serial_number ) {
+    global $wpdb;
+    $serial_number = sanitize_text_field( (string) $serial_number );
+    if ( '' === $serial_number ) {
+        return '';
+    }
+    $table = $wpdb->prefix . VM_TABLE;
+    $value = $wpdb->get_var( $wpdb->prepare( "SELECT transport_bureau FROM {$table} WHERE serial_number = %s", $serial_number ) );
+    return null === $value ? '' : (string) $value;
+}
+
+/**
  * 指定した一連指定番号（車番）が登録されているか
  *
  * @param string $serial_number
