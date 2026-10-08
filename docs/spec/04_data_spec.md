@@ -1,0 +1,128 @@
+# 04 データ設計・項目定義
+
+> 対象: 車両管理プラグイン v1.0.0。定義元: `includes/class-db-install.php`（テーブル）、`includes/class-master.php`（マスタ option）、`includes/class-vehicle.php`（タグ option）
+
+## 1. 保存先の全体像
+
+| 種別 | 名前 | 内容 |
+|---|---|---|
+| テーブル | `{WPプレフィックス}vehicle_manager`（定数 `VM_TABLE` = `vehicle_manager`） | 車両データ本体。1車両=1行 |
+| option | `vm_transport_bureaus` | 運輸支局マスタ（文字列配列） |
+| option | `vm_class_numbers` | 分類番号マスタ（文字列配列） |
+| option | `vm_purpose_categories` | 用途区別マスタ（文字列配列） |
+| option | `vm_tag_data` | 入力補助タグ（JSON文字列） |
+| option | `vm_db_version` | DBバージョン（現在 `1.0.0`） |
+
+テーブルは有効化時に `dbDelta` で作成（`register_activation_hook`）。アンインストール時に全て削除される（`uninstall.php`）。
+
+## 2. テーブル `vehicle_manager` カラム定義
+
+文字セット/照合順序は WordPress 設定（`$wpdb->get_charset_collate()`）に従う。
+
+### 識別・基本情報
+| カラム | 型 | NULL | 既定値 | 意味（日本語名） | 備考 |
+|---|---|---|---|---|---|
+| `id` | INT AUTO_INCREMENT | NO | － | 内部ID | 主キー。編集・削除はこのIDで指定 |
+| `transport_bureau` | VARCHAR(50) | NO | － | 運輸支局 | マスタ管理対象。索引あり |
+| `classification_number` | VARCHAR(10) | NO | － | 分類番号 | マスタ管理対象 |
+| `purpose_category` | VARCHAR(10) | NO | － | 用途区別 | マスタ管理対象 |
+| `serial_number` | VARCHAR(20) | NO | － | 一連指定番号（車番） | **UNIQUE**。外部参照キー |
+| `chassis_number` | VARCHAR(100) | NO | － | 車台番号 | 半角のみ。索引あり |
+
+### 日付
+| カラム | 型 | NULL | 既定値 | 意味 | 備考 |
+|---|---|---|---|---|---|
+| `registration_date` | DATE | YES | NULL | 登録年月日 | 和暦入力→西暦保存 |
+| `initial_registration_ym` | VARCHAR(20) | YES | NULL | 初度登録年月 | `YYYY-MM` |
+| `expiry_date` | DATE | YES | NULL | 有効期限満了日 | 索引あり。期限判定に使用 |
+
+### 車両情報
+| カラム | 型 | NULL | 既定値 | 意味 | 備考 |
+|---|---|---|---|---|---|
+| `vehicle_name` | VARCHAR(100) | YES | NULL | 車名 | タグ対象 |
+| `model` | VARCHAR(100) | YES | NULL | 型式 | タグ対象 |
+| `engine_model` | VARCHAR(50) | YES | NULL | 原動機の型式 | タグ対象 |
+| `vehicle_type` | VARCHAR(20) | YES | `普通` | 自動車の種別 | |
+| `usage_type` | VARCHAR(20) | YES | NULL | 用途 | 画面の選択肢: 特種/貨物 |
+| `ownership_type` | VARCHAR(20) | YES | `事業用` | 自家用・事業用の別 | |
+| `body_shape` | VARCHAR(50) | YES | NULL | 車体の形状 | 画面の選択肢: 冷蔵冷凍車/バン |
+| `passenger_capacity` | TINYINT | YES | 2 | 乗車定員 | 範囲 -128〜127（MySQLのTINYINT）。画面は1〜99 |
+| `fuel_type` | VARCHAR(20) | YES | `軽油` | 燃料の種類 | |
+| `brake` | VARCHAR(20) | YES | NULL | ブレーキ | 画面の選択肢: ドラム/ディスク |
+| `leaf_spring` | VARCHAR(50) | YES | NULL | リーフスプリング | タグ対象 |
+
+### 重量・寸法・軸重
+| カラム | 型 | NULL | 意味 | 単位 |
+|---|---|---|---|---|
+| `max_load_kg` | INT | YES | 最大積載量 | kg |
+| `vehicle_weight_kg` | INT | YES | 車両重量 | kg |
+| `gross_weight_kg` | INT | YES | 車両総重量 | kg |
+| `length_cm` | INT | YES | 長さ | cm |
+| `width_cm` | INT | YES | 幅 | cm |
+| `height_cm` | INT | YES | 高さ | cm |
+| `front_front_axle_kg` | INT | YES | 前前軸重 | kg |
+| `front_rear_axle_kg` | INT | YES | 前後軸重 | kg |
+| `rear_front_axle_kg` | INT | YES | 後前軸重 | kg |
+| `rear_rear_axle_kg` | INT | YES | 後後軸重 | kg |
+| `displacement` | DECIMAL(6,2) | YES | 総排気量又は定格出力 | kw / L |
+
+### その他（すべて任意・文字列）
+| カラム | 型 | 意味 |
+|---|---|---|
+| `model_designation_number` | VARCHAR(50) | 型式指定番号 |
+| `category_class_number` | VARCHAR(50) | 類別区分番号 |
+| `original_name` | VARCHAR(100) | 原本名称 |
+| `inspection_category` | VARCHAR(50) | 点検分類 |
+
+### 管理用
+| カラム | 型 | 既定値 | 意味 |
+|---|---|---|---|
+| `created_at` | DATETIME | CURRENT_TIMESTAMP | 作成日時 |
+| `updated_at` | DATETIME | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新日時（自動） |
+
+### インデックス
+| 名前 | 種別 | 対象 | 用途 |
+|---|---|---|---|
+| PRIMARY | 主キー | `id` | |
+| `idx_serial_number` | **UNIQUE** | `serial_number` | 重複登録防止・連携キー検索 |
+| `idx_transport` | 通常 | `transport_bureau` | 運輸支局での絞り込み |
+| `idx_expiry` | 通常 | `expiry_date` | 期限での絞り込み・並べ替え |
+| `idx_chassis` | 通常 | `chassis_number` | 車台番号検索用 |
+
+### 画面項目 ↔ CSV列名 ↔ カラム 対応表
+CSV列名の対応は `06_csv_import.md` を参照（CSV見出し＝車検証の項目名）。
+
+## 3. option データ構造
+
+### 3.1 マスタ（`vm_transport_bureaus` / `vm_class_numbers` / `vm_purpose_categories`）
+- 形式: 文字列の配列（並び順＝プルダウンの表示順）
+- 初期値（有効化時、option が未登録のときのみ投入）:
+
+| マスタ | キー（コード内） | 初期値 | 最大文字数 | 車両テーブルの紐付きカラム |
+|---|---|---|---|---|
+| 運輸支局 | `bureau` | 青森, 熊本 | 50 | `transport_bureau` |
+| 分類番号 | `class_number` | 130, 131, 830 | 10 | `classification_number` |
+| 用途区別 | `purpose` | あ, い, う, え, か, き, く, け, こ, を | 10 | `purpose_category` |
+
+- マスタと車両テーブルは**外部キー制約ではなく文字列の一致**で結び付く。マスタから消した値を持つ車両も存在し得る（CSV取込・過去データ）。
+
+### 3.2 タグ（`vm_tag_data`）
+- 形式: JSON文字列。キー=項目名、値=文字列配列。
+
+```json
+{
+  "vehicle_name":   ["日野","UDトラックス","三菱","いすゞ"],
+  "model":          ["2PG-CD5CE","2DG-FR1AHJ","QKG-CD5ZE","2PG-CYY77D","2PG-FU75HZ","2DG-FR1AHB","QKG-FW1EXEG","2RG-CD5FE"],
+  "engine_model":   ["GH11","A09C","6R20","6UZ1","E13C"],
+  "chassis_number": ["FR1AH-","CYY77D-","FU75HZ-","FW1EXE-"],
+  "leaf_spring":    ["フロント板羽"]
+}
+```
+上は有効化時の初期値。以降は CSV 取込（本実行）のたびに DB の内容から再計算される（`05_business_rules.md` 参照）。
+
+### 3.3 `vm_db_version`
+`1.0.0`。現状、スキーマ更新（マイグレーション）処理は実装されていない。
+
+## 4. 想定サイズ・データ特性（ソースから読み取れる範囲）
+- 一覧は LIMIT/OFFSET ページング（20件）。大量データ向けの最適化は未実装だが、運送会社の車両台数規模なら十分。
+- `serial_number` は VARCHAR のため、並べ替えは**文字列順**（"100" は "35" より前）。
