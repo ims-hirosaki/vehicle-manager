@@ -58,14 +58,14 @@ if ( vm_vehicle_exists( '1234' ) ) { /* ... */ }
 |---|---|---|---|---|
 | `vm_save` | `VM_Vehicle::ajax_save` | `vm_form_nonce` | 全項目＋`id`（0=新規、>0=更新） | `{success:true, data:{id}}` |
 | `vm_delete` | `VM_Vehicle::ajax_delete` | `vm_list_nonce` | `id` | `{success:true}` |
-| `vm_csv_import` | `VM_Vehicle::ajax_csv_import` | `vm_csv_nonce` | `csv_file`, `duplicate_mode`, `preview` | `06_csv_import.md` 参照 |
+| `vm_csv_import` | `VM_Vehicle::ajax_csv_import` | `vm_csv_nonce` | `csv_file`, `duplicate_mode`, `preview` | `06_CSV一括登録仕様.md` 参照 |
 
 エラー時は `{success:false, data:"メッセージ"}`。主なメッセージ:
 
 | メッセージ | 原因 |
 |---|---|
 | 権限がありません。 | `edit_custom_plugins` が無い |
-| （検証メッセージを `<br>` 連結） | 必須・形式エラー（`05_business_rules.md`） |
+| （検証メッセージを `<br>` 連結） | 必須・形式エラー（`05_業務ルール.md`） |
 | 一連指定番号「○○」はすでに登録されています。 | UNIQUE 重複（DBエラー文に "Duplicate" を含む場合） |
 | DB エラー: … | 上記以外のDB失敗 |
 | 無効なID です。 | `id` が 0 以下 |

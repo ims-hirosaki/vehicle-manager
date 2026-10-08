@@ -81,7 +81,7 @@
       - 既存あり・モード `overwrite` → UPDATE（成功: 更新件数+1、失敗: エラー「UPDATE 失敗: …」）
       - 既存あり・モード `skip` → スキップ件数+1
       - 既存なし → INSERT（成功: 新規件数+1、失敗: エラー「INSERT 失敗: …」）
-5. 本実行の場合のみ、タグを再計算（`VM_Vehicle::rebuild_tags`、`05_business_rules.md` 参照）
+5. 本実行の場合のみ、タグを再計算（`VM_Vehicle::rebuild_tags`、`05_業務ルール.md` 参照）
 6. 結果を JSON で返却
 
 ## 5. レスポンス
