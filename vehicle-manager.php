@@ -3,7 +3,7 @@
  * Plugin Name: 車両管理
  * Plugin URI:  https://tanpopo-transport.local
  * Description: 有限会社たんぽぽ運送 — 車両情報の登録・管理・CSV一括インポート
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      たんぽぽ運送システム
  * Text Domain: vehicle-manager
  */
@@ -11,7 +11,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // ── 定数 ─────────────────────────────────────────────
-define( 'VM_VERSION',    '1.0.0' );
+define( 'VM_VERSION',    '1.0.1' );
 define( 'VM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'VM_TABLE',      'vehicle_manager' ); // プレフィックスは $wpdb->prefix で付与
