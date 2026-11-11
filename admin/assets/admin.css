@@ -339,6 +339,7 @@
 /* タグバー */
 .vm-tag-bar { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .4rem; min-height: 0; }
 .vm-tag-bar:empty { display: none; }
+.vm-tag-bar-label { align-self: center; font-size: .75rem; color: #6b7280; white-space: nowrap; }
 .vm-tag {
     display: inline-block;
     padding: .18rem .55rem;

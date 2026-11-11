@@ -29,6 +29,11 @@
             var tagList = tags[target];
             if (!tagList || !tagList.length) return;
 
+            // 見出し（タグは任意の入力補助であることを示す）
+            $('<span class="vm-tag-bar-label">')
+                .text($bar.data('label') || 'よく使う値：')
+                .appendTo($bar);
+
             tagList.forEach(function (tag) {
                 $('<span class="vm-tag">')
                     .text(tag)

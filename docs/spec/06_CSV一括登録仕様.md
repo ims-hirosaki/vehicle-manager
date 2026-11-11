@@ -1,6 +1,6 @@
 # 06 CSV一括登録 詳細仕様
 
-> 対象: 車両管理プラグイン v1.0.0。実装元: `VM_Vehicle::ajax_csv_import()`（`includes/class-vehicle.php`）、画面 `admin/views/vehicle-csv.php`、制御 `admin/assets/admin.js`（`initCsvPage`）
+> 対象: 車両管理プラグイン v1.0.1。実装元: `VM_Vehicle::ajax_csv_import()`（`includes/class-vehicle.php`）、画面 `admin/views/vehicle-csv.php`、制御 `admin/assets/admin.js`（`initCsvPage`）
 
 ## 1. 概要
 

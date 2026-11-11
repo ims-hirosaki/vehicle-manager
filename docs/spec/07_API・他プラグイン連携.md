@@ -1,6 +1,6 @@
 # 07 公開API・AJAX・他プラグイン連携
 
-> 対象: 車両管理プラグイン v1.0.0。実装元: `vehicle-manager.php`（公開関数）、`admin/class-admin-menu.php`（AJAX登録）、`includes/class-vehicle.php`（AJAX処理）
+> 対象: 車両管理プラグイン v1.0.1。実装元: `vehicle-manager.php`（公開関数）、`admin/class-admin-menu.php`（AJAX登録）、`includes/class-vehicle.php`（AJAX処理）
 
 ## 1. 他プラグインから呼べる公開 PHP 関数
 
