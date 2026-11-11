@@ -142,7 +142,7 @@ $init_reg_disp    = $v ? VM_Vehicle::ym_to_wareki( $v->initial_registration_ym )
                         <span class="vm-input-icon vm-chassis-ok" title="半角OK" style="display:none;">✔</span>
                         <span class="vm-input-icon vm-chassis-ng" title="全角NG" style="display:none;">✖</span>
                     </div>
-                    <span class="vm-hint">半角英数字・ハイフンのみ。タグをクリックでプレフィックス入力後に続きを追記できます。</span>
+                    <span class="vm-hint">半角英数字・ハイフンのみ。そのまま直接入力できます。上のタグ（任意）をクリックすると先頭部分が入るので、続きだけ入力することもできます。</span>
                     <div class="vm-field-error" id="chassis-error" style="display:none;">
                         全角文字が含まれています。半角英数字・ハイフンのみ使用できます。
                     </div>
