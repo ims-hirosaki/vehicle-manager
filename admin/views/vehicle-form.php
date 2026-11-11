@@ -131,7 +131,7 @@ $init_reg_disp    = $v ? VM_Vehicle::ym_to_wareki( $v->initial_registration_ym )
                 <!-- 車台番号 -->
                 <div class="vm-field vm-field-wide">
                     <label class="vm-label vm-required">車台番号</label>
-                    <div class="vm-tag-bar" data-target="chassis_number"></div>
+                    <div class="vm-tag-bar" data-target="chassis_number" data-label="よく使う先頭部分："></div>
                     <div class="vm-input-wrap">
                         <input type="text" name="chassis_number" id="field-chassis_number"
                                value="<?php echo vm_val( $v, 'chassis_number' ); ?>"
@@ -142,7 +142,7 @@ $init_reg_disp    = $v ? VM_Vehicle::ym_to_wareki( $v->initial_registration_ym )
                         <span class="vm-input-icon vm-chassis-ok" title="半角OK" style="display:none;">✔</span>
                         <span class="vm-input-icon vm-chassis-ng" title="全角NG" style="display:none;">✖</span>
                     </div>
-                    <span class="vm-hint">半角英数字・ハイフンのみ。そのまま直接入力できます。上のタグ（任意）をクリックすると先頭部分が入るので、続きだけ入力することもできます。</span>
+                    <span class="vm-hint">半角英数字・ハイフンのみ。直接入力できます（タグを押すと先頭部分が入ります・任意）。</span>
                     <div class="vm-field-error" id="chassis-error" style="display:none;">
                         全角文字が含まれています。半角英数字・ハイフンのみ使用できます。
                     </div>
